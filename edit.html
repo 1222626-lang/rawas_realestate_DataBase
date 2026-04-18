@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ project.name }} - Rawas Real Estate{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <!-- Breadcrumb Navigation -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('projects.list_projects') }}">Projects</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('projects.view_project', project_id=project.project_id) }}">{{ project.name }}</a></li>
+                    <li class="breadcrumb-item active">Edit</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0">
+                <i class="bi bi-pencil text-primary"></i>
+                Edit Project: {{ project.name }}
+            </h1>
+        </div>
+        <div>
+            <a href="{{ url_for('projects.view_project', project_id=project.project_id) }}" 
+               class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle me-1"></i>
+                Cancel
+            </a>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Edit Form Card -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pencil-square"></i>
+                        Edit Project Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="editProjectForm">
+                        <div class="row g-3">
+                            <!-- Project Name -->
+                            <div class="col-md-12">
+                                <label for="name" class="form-label required">Project Name</label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ project.name }}" required>
+                            </div>
+
+                            <!-- Location -->
+                            <div class="col-md-12">
+                                <label for="location" class="form-label required">Project Location</label>
+                                <input type="text" class="form-control" id="location" name="location" 
+                                       value="{{ project.location }}" required>
+                            </div>
+
+                            <!-- Dates -->
+                            <div class="col-md-6">
+                                <label for="start_date" class="form-label required">Start Date</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date" 
+                                       value="{{ project.start_date }}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="end_date" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="end_date" name="end_date" 
+                                       value="{{ project.end_date or '' }}">
+                            </div>
+
+                            <!-- Status -->
+                            <div class="col-md-6">
+                                <label for="status" class="form-label required">Project Status</label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="Planning" {% if project.status == 'Planning' %}selected{% endif %}>Planning</option>
+                                    <option value="Under Construction" {% if project.status == 'Under Construction' %}selected{% endif %}>Under Construction</option>
+                                    <option value="Completed" {% if project.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                    <option value="On Hold" {% if project.status == 'On Hold' %}selected{% endif %}>On Hold</option>
+                                </select>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-md-12">
+                                <label for="description" class="form-label">Project Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="4">{{ project.description or '' }}</textarea>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <!-- Delete Button -->
+                                    <button type="button" class="btn btn-outline-danger" 
+                                            onclick="confirmDelete()">
+                                        <i class="bi bi-trash me-1"></i>
+                                        Delete Project
+                                    </button>
+                                    <!-- Save/Cancel Buttons -->
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('projects.view_project', project_id=project.project_id) }}" 
+                                           class="btn btn-outline-secondary">
+                                            <i class="bi bi-x-circle me-1"></i>
+                                            Cancel
+                                        </a>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-save me-1"></i>
+                                            Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Audit Information Card -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-clock-history"></i>
+                        Audit Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">Created At:</small>
+                            <p class="mb-2">{{ project.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                        </div>
+                        {% if project.updated_at %}
+                        <div class="col-md-6">
+                            <small class="text-muted">Last Updated:</small>
+                            <p class="mb-0">{{ project.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Confirm project deletion
+function confirmDelete() {
+    if (confirm('Are you sure you want to delete this project?\nThis action will delete all related data and cannot be undone.')) {
+        $.ajax({
+            url: '{{ url_for("projects.delete_project", project_id=project.project_id) }}',
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('Project deleted successfully');
+                    window.location.href = '{{ url_for("projects.list_projects") }}';
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Error connecting to server');
+            }
+        });
+    }
+}
+
+// Form validation
+$(document).ready(function() {
+    $('#editProjectForm').on('submit', function(e) {
+        const name = $('#name').val().trim();
+        const location = $('#location').val().trim();
+        const startDate = $('#start_date').val();
+        
+        // Validate required fields
+        if (!name || !location || !startDate) {
+            e.preventDefault();
+            alert('Please fill all required fields');
+            return false;
+        }
+        
+        return true;
+    });
+});
+</script>
+{% endblock %}

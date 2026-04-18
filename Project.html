@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Project Management - Rawas Real Estate{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-2">
+                <i class="bi bi-building text-primary"></i>
+                Real Estate Projects Management
+            </h1>
+            <p class="text-muted mb-0">View, edit, and manage all projects</p>
+        </div>
+        <div>
+            <a href="{{ url_for('projects.add_project') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>
+                Add New Project
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">
+                <i class="bi bi-funnel"></i>
+                Filter Projects
+            </h5>
+            <form method="GET" class="row g-3">
+                <!-- Status Filter -->
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Project Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="Planning" {% if request.args.get('status') == 'Planning' %}selected{% endif %}>Planning</option>
+                        <option value="Under Construction" {% if request.args.get('status') == 'Under Construction' %}selected{% endif %}>Under Construction</option>
+                        <option value="Completed" {% if request.args.get('status') == 'Completed' %}selected{% endif %}>Completed</option>
+                        <option value="On Hold" {% if request.args.get('status') == 'On Hold' %}selected{% endif %}>On Hold</option>
+                    </select>
+                </div>
+                
+                <!-- Location Filter -->
+                <div class="col-md-3">
+                    <label for="location" class="form-label">Location</label>
+                    <input type="text" name="location" id="location" class="form-control" 
+                           placeholder="Search by location..." value="{{ request.args.get('location', '') }}">
+                </div>
+                
+                <!-- Search Button -->
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i>
+                            Search
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Reset Button -->
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div>
+                        <a href="{{ url_for('projects.list_projects') }}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-x-circle"></i>
+                            Reset
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <!-- Total Projects Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start-primary shadow-sm h-100">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs fw-bold text-primary mb-1">Total Projects</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ projects|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-building fs-1 text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Under Construction Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start-success shadow-sm h-100">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs fw-bold text-success mb-1">Under Construction</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">
+                                {{ projects|selectattr('status', 'equalto', 'Under Construction')|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-hammer fs-1 text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Completed Projects Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start-info shadow-sm h-100">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs fw-bold text-info mb-1">Completed</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">
+                                {{ projects|selectattr('status', 'equalto', 'Completed')|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-check-circle fs-1 text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Planning Projects Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start-warning shadow-sm h-100">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs fw-bold text-warning mb-1">Planning</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">
+                                {{ projects|selectattr('status', 'equalto', 'Planning')|list|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-clipboard-check fs-1 text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Projects Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-list-task"></i>
+                Projects List
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if projects %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Project Name</th>
+                            <th>Location</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in projects %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <strong class="d-block">{{ project.name }}</strong>
+                                {% if project.description %}
+                                <small class="text-muted">{{ project.description[:60] }}{% if project.description|length > 60 %}...{% endif %}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ project.location }}</td>
+                            <td>{{ project.start_date }}</td>
+                            <td>{{ project.end_date or 'Not specified' }}</td>
+                            <td>
+                                <!-- Status Badges -->
+                                {% if project.status == 'Completed' %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>Completed
+                                </span>
+                                {% elif project.status == 'Under Construction' %}
+                                <span class="badge bg-primary">
+                                    <i class="bi bi-hammer me-1"></i>Under Construction
+                                </span>
+                                {% elif project.status == 'Planning' %}
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-clipboard-check me-1"></i>Planning
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-pause-circle me-1"></i>On Hold
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <!-- Action Buttons -->
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('projects.view_project', project_id=project.project_id) }}" 
+                                       class="btn btn-sm btn-outline-primary" 
+                                       title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('projects.edit_project', project_id=project.project_id) }}" 
+                                       class="btn btn-sm btn-outline-secondary" 
+                                       title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-danger delete-project-btn"
+                                            data-id="{{ project.project_id }}"
+                                            data-name="{{ project.name }}"
+                                            title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                </div>
+                <h5 class="text-muted mb-3">No projects found</h5>
+                <p class="text-muted mb-4">Start by adding a new project to the system</p>
+                <a href="{{ url_for('projects.add_project') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Add New Project
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Table Footer -->
+        {% if projects %}
+        <div class="card-footer bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="text-muted">
+                    Showing <strong>{{ projects|length }}</strong> projects
+                </div>
+                <div>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="exportProjects()">
+                        <i class="bi bi-download me-1"></i>
+                        Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Export projects function
+function exportProjects() {
+    alert('Projects list will be exported to Excel file');
+    // Add export logic here
+}
+
+// Delete project confirmation
+$(document).ready(function() {
+    $('.delete-project-btn').click(function() {
+        const projectId = $(this).data('id');
+        const projectName = $(this).data('name');
+        
+        if (confirm(`Are you sure you want to delete project "${projectName}"?\nThis action cannot be undone.`)) {
+            $.ajax({
+                url: `/projects/${projectId}/delete`,
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Project deleted successfully');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error connecting to server');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Project - Rawas Real Estate{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <!-- Breadcrumb Navigation -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('projects.list_projects') }}">Projects</a></li>
+                    <li class="breadcrumb-item active">Add New Project</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0">
+                <i class="bi bi-plus-circle text-primary"></i>
+                Add New Project
+            </h1>
+        </div>
+        <div>
+            <a href="{{ url_for('projects.list_projects') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-right me-1"></i>
+                Back to List
+            </a>
+        </div>
+    </div>
+
+    <!-- Add Project Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Main Form Card -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-building-add"></i>
+                        New Project Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('projects.add_project') }}" id="addProjectForm">
+                        <div class="row g-3">
+                            <!-- Project Name Field -->
+                            <div class="col-md-12">
+                                <label for="name" class="form-label required">Project Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required
+                                       placeholder="Enter project name">
+                                <div class="form-text">Project name as it will appear in the system</div>
+                            </div>
+
+                            <!-- Location Field -->
+                            <div class="col-md-12">
+                                <label for="location" class="form-label required">Project Location</label>
+                                <input type="text" class="form-control" id="location" name="location" required
+                                       placeholder="Enter project location">
+                                <div class="form-text">Full geographical location of the project</div>
+                            </div>
+
+                            <!-- Dates Section -->
+                            <div class="col-md-6">
+                                <label for="start_date" class="form-label required">Start Date</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="end_date" class="form-label">Expected End Date</label>
+                                <input type="date" class="form-control" id="end_date" name="end_date">
+                                <div class="form-text">Can be left empty</div>
+                            </div>
+
+                            <!-- Status Field -->
+                            <div class="col-md-6">
+                                <label for="status" class="form-label required">Project Status</label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="" selected disabled>Select project status</option>
+                                    <option value="Planning">Planning</option>
+                                    <option value="Under Construction">Under Construction</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="On Hold">On Hold</option>
+                                </select>
+                            </div>
+
+                            <!-- Description Field -->
+                            <div class="col-md-12">
+                                <label for="description" class="form-label">Project Description</label>
+                                <textarea class="form-control" id="description" name="description" 
+                                          rows="4" placeholder="Enter detailed project description..."></textarea>
+                                <div class="form-text">Project description, objectives, and key features</div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="reset" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle me-1"></i>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-save me-1"></i>
+                                        Save Project
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Card -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        Tips & Guidelines
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Verify entered data before saving</li>
+                        <li>You can edit the project later from the details page</li>
+                        <li>Project name should be unique and clear</li>
+                        <li>Start date is the actual work start date</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Required field indicator */
+.required:after {
+    content: " *";
+    color: #dc3545;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Set minimum date for start date to today
+    const today = new Date().toISOString().split('T')[0];
+    $('#start_date').attr('min', today);
+    
+    // Form validation
+    $('#addProjectForm').on('submit', function(e) {
+        const name = $('#name').val().trim();
+        const location = $('#location').val().trim();
+        const startDate = $('#start_date').val();
+        const status = $('#status').val();
+        
+        // Validate required fields
+        if (!name || !location || !startDate || !status) {
+            e.preventDefault();
+            alert('Please fill all required fields');
+            return false;
+        }
+        
+        return true;
+    });
+});
+</script>
+{% endblock %}
